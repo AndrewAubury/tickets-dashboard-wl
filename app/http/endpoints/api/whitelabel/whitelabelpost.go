@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/TicketsBot-cloud/common/tokenchange"
 	"github.com/TicketsBot-cloud/common/whitelabeldelete"
@@ -54,14 +55,14 @@ func WhitelabelPost() func(*gin.Context) {
 
 			return
 		}
-
+		time.Sleep(1 * time.Second)
 		// Check if this is a different token
 		existing, err := dbclient.Client.Whitelabel.GetByUserId(c, userId)
 		if err != nil {
 			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
-
+		time.Sleep(1 * time.Second)
 		// Take existing whitelabel bot offline, if it is a different bot
 		if existing.BotId != 0 && existing.BotId != bot.Id {
 			whitelabeldelete.Publish(redis.Client.Client, existing.BotId)
@@ -78,13 +79,15 @@ func WhitelabelPost() func(*gin.Context) {
 			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
-
+		time.Sleep(1 * time.Second)
 		// Set intents
 		var currentFlags application.Flag = 0
 		if bot.Flags != nil {
 			currentFlags = *bot.Flags
 		}
 
+		urlStr := fmt.Sprintf("https://gateway.tickets.andrewa.co.uk/handle/%d", bot.Id)
+		time.Sleep(1 * time.Second)
 		editData := rest.EditCurrentApplicationData{
 			Flags: utils.Ptr(application.BuildFlags(
 				currentFlags,
@@ -92,7 +95,7 @@ func WhitelabelPost() func(*gin.Context) {
 				application.FlagGatewayMessageContentLimited,
 			)),
 			// TODO: Don't hardcode URL
-			InteractionsEndpointUrl: utils.Ptr(fmt.Sprintf("https://gateway.tickets.andrewa.co.uk/handle/%d", bot.Id)),
+			InteractionsEndpointUrl: &urlStr,
 		}
 
 		if _, err := rest.EditCurrentApplication(context.Background(), data.Token, nil, editData); err != nil {
@@ -105,6 +108,7 @@ func WhitelabelPost() func(*gin.Context) {
 			_ = c.AbortWithError(http.StatusInternalServerError, app.NewServerError(err))
 			return
 		}
+		time.Sleep(1 * time.Second)
 
 		tokenChangeData := tokenchange.TokenChangeData{
 			Token: data.Token,
