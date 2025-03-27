@@ -9,7 +9,7 @@ on:
 
 jobs:
   run:
-    uses: andrewaubury/template/.github/workflows/template.yaml@main
+    uses: andrewaubury/ticket-template/.github/workflows/template.yaml@main
     permissions:
       contents: read
       packages: write
